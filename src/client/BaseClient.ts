@@ -1,25 +1,28 @@
 import { EventEmitter } from 'events';
 import { IBaseClientOptions, Intents, IPresence } from '../util';
 import { WebsocketShardManager } from './websocket';
+import { RestManager } from './rest/RestManager';
 
 export class BaseClient extends EventEmitter {
 	public ws: WebsocketShardManager;
-	private _token: string;
+	public token: string;
 	private _intents: Intents[] | Intents;
 	private _presence: IPresence;
 	public options: IBaseClientOptions;
-	constructor(options: IBaseClientOptions) {
+	public rest: RestManager;
+	constructor(token: string, options: IBaseClientOptions) {
 		super();
 
 		this.options = options;
 		this.ws = new WebsocketShardManager(this);
-		this._token = options.token;
+		this.token = token;
 		this._intents = options.intents;
 		this._presence = options.presence;
+		this.rest = new RestManager(this);
 	}
 
 	async login() {
-		this._token = this._token.replace(/^(Bot|Bearer)\s*/i, '');
+		this.token = this.token.replace(/^(Bot|Bearer)\s*/i, '');
 		this.emit('debug', `Provided token `);
 
 		if (this._presence) {
@@ -30,7 +33,7 @@ export class BaseClient extends EventEmitter {
 
 		try {
 			await this.ws.connect();
-			return this._token;
+			return this.token;
 		} catch (error) {
 			throw error;
 		}

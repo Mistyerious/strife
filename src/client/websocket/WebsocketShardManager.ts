@@ -26,7 +26,6 @@ export class WebsocketShardManager extends EventEmitter {
 	async connect() {
 		const shard = new WebsocketShard(this, '1');
 		this.shards.set(shard.shardId, shard);
-
-		shard.connect();
+		await shard.connect();
 	}
 }
