@@ -1,7 +1,8 @@
 import { EventEmitter } from 'events';
 import { IBaseClientOptions, Intents, IPresence } from '../util';
 import { WebsocketShardManager } from './websocket';
-import { RestManager } from './rest/RestManager';
+import { RestManager } from './rest';
+import { BaseStore } from '../stores';
 
 export class BaseClient extends EventEmitter {
 	public ws: WebsocketShardManager;
@@ -10,6 +11,7 @@ export class BaseClient extends EventEmitter {
 	private _presence: IPresence;
 	public options: IBaseClientOptions;
 	public rest: RestManager;
+	public guilds: BaseStore<string, any>;
 	constructor(token: string, options: IBaseClientOptions) {
 		super();
 
@@ -19,6 +21,7 @@ export class BaseClient extends EventEmitter {
 		this._intents = options.intents;
 		this._presence = options.presence;
 		this.rest = new RestManager(this);
+		this.guilds = new BaseStore<string, any>();
 	}
 
 	async login() {

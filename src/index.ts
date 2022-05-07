@@ -17,12 +17,5 @@ const client = new BaseClient(TOKEN, {
 });
 
 client.on('debug', console.log);
-(async () => {
-	console.log(
-		await client.rest.createChannel('957867801119449109', {
-			name: 'DickAndBalls',
-			type: ChannelType.GuildText,
-		}),
-	);
-})();
+client.on('ready', console.log);
 client.login();

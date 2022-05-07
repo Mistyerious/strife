@@ -12,6 +12,17 @@ export interface IBaseClientOptions {
 	intents: Array<Intents> | Intents;
 	presence?: IPresence;
 	shards?: BaseStore<string, WebsocketShard>;
+	cache?: CacheOptions;
+	cacheEnabled?: boolean;
+}
+
+interface CacheOptions {
+	guild: GuildCacheOptions;
+}
+
+interface GuildCacheOptions {
+	time: number;
+	limit: number;
 }
 
 export enum Intents {

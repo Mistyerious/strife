@@ -60,6 +60,7 @@ export class RestManager {
 			headers: {
 				Authorization: `Bot ${this.client.token}`,
 				'X-Audit-Log-Reason': data.reason,
+				'Content-Type': 'application/json',
 			},
 			method: 'POST',
 		});

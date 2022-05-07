@@ -126,7 +126,9 @@ export class WebsocketShard extends EventEmitter {
 						this.readyAt = this.identifiedAt = Date.now();
 						this.sessionId = data.d.session_id;
 						this.debug(`'Gateway Ready' (Session = ${data.d.session_id})`);
-						this.emit('ready', data.d);
+						this.manager.client.emit('ready', data.d);
+						if (this.manager.client.options.cacheEnabled) {
+						}
 						return;
 					}
 					case GatewayDispatchEvents.Resumed: {
