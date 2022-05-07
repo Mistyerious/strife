@@ -6,7 +6,10 @@ import {
 	RESTGetAPIChannelResult,
 	RESTPatchAPIChannelJSONBody,
 	RESTPatchAPIChannelResult,
+	RESTPostAPIChannelMessageJSONBody,
+	RESTPostAPIChannelMessageResult,
 	RESTPostAPIGuildChannelJSONBody,
+	RESTPostAPIGuildChannelResult,
 } from 'discord-api-types/v9';
 
 export class RestManager {
@@ -54,7 +57,10 @@ export class RestManager {
 		return body.json();
 	}
 
-	public async createChannel(guildId: string, data: RESTPostAPIGuildChannelJSONBody & { reason?: string }) {
+	public async createChannel(
+		guildId: string,
+		data: RESTPostAPIGuildChannelJSONBody & { reason?: string },
+	): Promise<RESTPostAPIGuildChannelResult> {
 		const { body } = await request(Api.CREATE_GUILD_CHANNEL.replace(':guildId', guildId), {
 			body: JSON.stringify(data),
 			headers: {
@@ -67,4 +73,25 @@ export class RestManager {
 
 		return body.json();
 	}
+
+	public async createMessage(
+		channelId: string,
+		content: RESTPostAPIChannelMessageJSONBody,
+	): Promise<RESTPostAPIChannelMessageResult> {
+		const { body } = await request(Api.CREATE_MESSAGE.replace(':channelId', channelId), {
+			body: JSON.stringify(content),
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bot ${this.client.token}`,
+			},
+			method: 'POST',
+		});
+
+		return body.json();
+	}
+
+	// public async populateCache() {
+	// 	if (this.client.options.cacheEnabled) {
+	// 	}
+	// }
 }

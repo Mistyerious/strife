@@ -1,9 +1,10 @@
 import { EventEmitter } from 'events';
-import { IPresence, IWebsocketShardData, Util } from '../../util';
+import { GatewayEvents, IPresence, IWebsocketShardData, Util } from '../../util';
 import { WebsocketShardManager } from './WebsocketShardManager';
 import WebSocket = require('ws');
 import { GatewayDispatchEvents, GatewayOpcodes } from 'discord-api-types/v9';
 import { RawData } from 'ws';
+import { Channel, Message } from '../rest';
 
 export class WebsocketShard extends EventEmitter {
 	private ratelimit: { limit: number; remaining: number; time: number; timer: null | NodeJS.Timeout };
@@ -91,7 +92,9 @@ export class WebsocketShard extends EventEmitter {
 			op: GatewayOpcodes.Identify,
 			d: {
 				token: this.manager.client.token,
-				intents: this.manager.client.options.intents,
+				intents: this.manager.client.options.intents
+					? Util.parseIntents(this.manager.client.options.intents)
+					: 0,
 				properties: { $os: process.platform, $browser: 'strife', $device: 'strife' },
 				presence: this.presence,
 			},
@@ -118,7 +121,6 @@ export class WebsocketShard extends EventEmitter {
 		if (data.s > this.sequence) {
 			this.sequence = data.s;
 		}
-
 		switch (data.op) {
 			case GatewayOpcodes.Dispatch: {
 				switch (data.t) {
@@ -127,15 +129,46 @@ export class WebsocketShard extends EventEmitter {
 						this.sessionId = data.d.session_id;
 						this.debug(`'Gateway Ready' (Session = ${data.d.session_id})`);
 						this.manager.client.emit('ready', data.d);
-						if (this.manager.client.options.cacheEnabled) {
-						}
-						return;
+						break;
 					}
 					case GatewayDispatchEvents.Resumed: {
 						this.readyAt = Date.now();
 						this.debug(`Gateway Resumed (Session = ${this.sessionId})`);
 						this.emit('resumed', data.d);
-						return;
+						break;
+					}
+					case GatewayDispatchEvents.MessageCreate: {
+						this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
+						break;
+					}
+					case GatewayDispatchEvents.MessageDelete: {
+						this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
+						break;
+					}
+					case GatewayDispatchEvents.MessageDeleteBulk: {
+						this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
+						break;
+					}
+					case GatewayDispatchEvents.MessageUpdate: {
+						this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
+						break;
+					}
+					// case GatewayDispatchEvents.MessageReactionAdd: {
+					// 	this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
+					// 	break;
+					// }
+					// case GatewayDispatchEvents.MessageReactionRemove: {
+					// 	this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
+					// 	break;
+					// }
+					case GatewayDispatchEvents.ChannelCreate: {
+						this.manager.client.emit(GatewayEvents[data.t], new Channel(this.manager.client, data.d));
+					}
+					case GatewayDispatchEvents.ChannelUpdate: {
+						this.manager.client.emit(GatewayEvents[data.t], new Channel(this.manager.client, data.d));
+					}
+					case GatewayDispatchEvents.ChannelDelete: {
+						this.manager.client.emit(GatewayEvents[data.t], new Channel(this.manager.client, data.d));
 					}
 				}
 				this.manager.client.emit(data.t, data.d);
@@ -165,7 +198,7 @@ export class WebsocketShard extends EventEmitter {
 			case GatewayOpcodes.Resume: {
 				this.debug('Discord asked us to reconnect');
 				await this.connection.close();
-				this.connect();
+				this._identify();
 				break;
 			}
 			case GatewayOpcodes.HeartbeatAck: {

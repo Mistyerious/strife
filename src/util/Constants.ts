@@ -1,5 +1,8 @@
 import { BaseStore } from '../stores';
 import { WebsocketShard } from '../client';
+import { Message } from '../client/rest';
+import { BaseClient } from '../client/BaseClient';
+import { ChannelType, OverwriteType } from 'discord-api-types/v9';
 
 export interface IWebsocketShardData {
 	op: number;
@@ -9,7 +12,7 @@ export interface IWebsocketShardData {
 }
 
 export interface IBaseClientOptions {
-	intents: Array<Intents> | Intents;
+	intents: Array<Intents>;
 	presence?: IPresence;
 	shards?: BaseStore<string, WebsocketShard>;
 	cache?: CacheOptions;
@@ -70,4 +73,64 @@ export const Api = Object.freeze({
 	MODIFY_CHANNEL_BY_ID: `https://discord.com/api/${VERSION}/channels/:id`,
 	DELETE_CHANNEL_BY_ID: `https://discord.com/api/${VERSION}/channels/:id`,
 	CREATE_GUILD_CHANNEL: `https://discord.com/api/${VERSION}/guilds/:guildId/channels`,
+	CREATE_MESSAGE: `https://discord.com/api/${VERSION}/channels/:channelId/messages`,
 });
+
+export const GatewayEvents = Object.freeze({
+	MESSAGE_CREATE: 'messageCreate',
+	MESSAGE_DELETE: 'messageDelete',
+	MESSAGE_UPDATE: 'messageUpdate',
+	MESSAGE_DELETE_BULK: 'messageDeleteBulk',
+	MESSAGE_REACTION_ADD: 'messageReactionAdd',
+	MESSAGE_REACTION_REMOVE: 'messageReactionRemove',
+	CHANNEL_CREATE: 'channelCreate',
+	CHANNEL_UPDATE: 'channelUpdate',
+	CHANNEL_DELETE: 'channelDelete',
+});
+
+export interface MessageData {
+	content: string;
+	id: string;
+	author: MessageAuthor;
+	embeds: [];
+	mentions: [];
+	pinned: boolean;
+	mention_everyone: boolean;
+	tts: boolean;
+	timestamp: string;
+	edited_timestamp: null | string;
+	flags: number;
+	components: [];
+	type: number;
+	channel_id: string;
+	mention_roles: [];
+	mention_channels: [];
+}
+
+export interface MessageAuthor {
+	id: string;
+	username: string;
+	avatar: null | string;
+	avatar_decoration: null | string;
+	discriminator: string;
+	public_flags: number;
+	bot: boolean;
+}
+
+export interface ChannelData {
+	id: string;
+	type: ChannelType;
+	guild_id: string;
+	position?: number | null;
+	permission_overwrites?: Array<PermissionOverwrites>;
+	name: string;
+	topic: string;
+	parent: string;
+}
+
+export interface PermissionOverwrites {
+	id: string;
+	type: OverwriteType;
+	allow: string;
+	deny: string;
+}
