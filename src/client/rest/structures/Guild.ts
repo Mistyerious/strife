@@ -9,6 +9,7 @@ export class Guild {
 	public id: string;
 	constructor(client: BaseClient, data: GuildData) {
 		this.id = data.id;
+		this.client = client;
 
 		if (client.options.cache.channels) {
 			for (const rawChannel of data.channels.values()) {

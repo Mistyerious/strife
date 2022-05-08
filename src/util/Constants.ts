@@ -1,7 +1,9 @@
 import { BaseStore } from '../stores';
 import { WebsocketShard } from '../client';
 import {
+	APIMessageReferenceSend,
 	ChannelType,
+	EmbedType,
 	GuildDefaultMessageNotifications,
 	GuildExplicitContentFilter,
 	GuildMFALevel,
@@ -71,7 +73,7 @@ export enum ActivityTypes {
 }
 
 const VERSION = 'v9';
-const URL = `https://discord.com/api/${VERSION}`;
+export const DiscordApiUrl = `https://discord.com/api/${VERSION}`;
 
 export const GatewayEvents = Object.freeze({
 	MESSAGE_CREATE: 'messageCreate',
@@ -159,3 +161,69 @@ export interface GuildData {
 	unavailable: boolean;
 	channels: Array<Channel>;
 }
+
+export interface MessageCreateData {
+	content: string;
+	nonce?: number | string;
+	tts?: boolean;
+	embeds?: Array<Embed>;
+	embed?: Embed;
+	allowed_mentions?: AllowedMentions;
+	message_reference?: MessageReferenceSend;
+	components?: [];
+	sticker_ids?: Array<Snowflake>;
+	attachments?: [];
+	flags?: MessageFlags;
+}
+
+export interface AllowedMentions {
+	roles?: boolean;
+	users?: boolean;
+	replied_users?: boolean;
+}
+
+interface MessageReferenceSend {
+	message_id?: Snowflake;
+	channel_id?: Snowflake;
+	guild_id?: Snowflake;
+	fail_if_not_exists?: boolean;
+}
+
+export enum MessageFlags {
+	CROSSPOSTED = 1 << 0, // this message has been published to subscribed channels (via Channel Following)
+	IS_CROSSPOST = 1 << 1, // this message originated from a message in another channel (via Channel Following)
+	SUPRESS_EMBEDS = 1 << 2, // do not include any embeds when serializing this message
+	SOURCE_MESSAGE_DELETED = 1 << 3, //	the source message for this crosspost has been deleted (via Channel Following)
+	URGENT = 1 << 4, //	this message came from the urgent message system
+	HAS_THREADD = 1 << 5, // this message has an associated thread, with the same id as the message
+	EPHEMERAL = 1 << 6, // this message is only visible to the user who invoked the Interaction
+	LOADING = 1 << 7, // this message is an Interaction Response and the bot is "thinking"
+	FAILEDD_TO_MENTION_SOME_ROLES_IN_THREAD = 1 << 8, // this message failed to mention some roles and add their members to the thread
+}
+
+interface Embed {
+	title?: string;
+	type?: string;
+	description?: string;
+	url?: string;
+	timestamp?: string;
+	color?: number;
+	footer?: EmbedFooter;
+	image?: EmbedImage;
+	thumbnail?: EmbedThumbnail;
+}
+
+interface EmbedFooter {
+	text: string;
+	icon_url?: string;
+	proxy_icon_url?: string;
+}
+
+interface EmbedImage {
+	url: string;
+	proxy_url?: string;
+	height?: string;
+	width?: string;
+}
+
+interface EmbedThumbnail extends EmbedImage {}

@@ -18,7 +18,7 @@ export class WebsocketShard extends EventEmitter {
 	private identifiedAt: number | null;
 	private heartbeatInterval: NodeJS.Timeout | null;
 	private heartbeatTimeout: number | null;
-	public presence: IPresence;
+	private presence: IPresence;
 	public shardId: string;
 
 	constructor(manager: WebsocketShardManager, shardId: string) {

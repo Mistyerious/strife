@@ -20,6 +20,7 @@ export class Message {
 	public channelId: string;
 	public mentionRoles = [];
 	public mentionChannels = [];
+	public channel: Channel;
 	constructor(client: BaseClient, data: MessageData) {
 		this.client = client;
 		this.id = data.id;
@@ -37,9 +38,7 @@ export class Message {
 		this.channelId = data.channel_id;
 		this.mentionChannels = data.mention_channels;
 		this.mentionRoles = data.mention_roles;
-	}
-
-	channel(id: string): Channel {
-		return this.client.channels.get(id);
+		this.type = data.type;
+		this.channel = this.client.channels.get(this.channelId);
 	}
 }
