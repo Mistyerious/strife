@@ -13,7 +13,7 @@ export class Guild {
 
 		if (client.options.cache.channels) {
 			for (const rawChannel of data.channels.values()) {
-				const channel = new Channel(client, rawChannel);
+				const channel = new Channel(client, rawChannel, this);
 				this.channels.set(channel.id, channel);
 			}
 		}
