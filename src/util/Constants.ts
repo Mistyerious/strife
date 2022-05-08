@@ -28,10 +28,15 @@ export interface IBaseClientOptions {
 }
 
 interface CacheOptions {
-	guild?: boolean;
-	channels?: boolean;
-	users?: boolean;
-	members?: boolean;
+	guild?: CacheOptionInternal;
+	channels?: CacheOptionInternal;
+	users?: CacheOptionInternal;
+	members?: CacheOptionInternal;
+}
+
+interface CacheOptionInternal {
+	limit?: number;
+	time?: number;
 }
 
 export enum Intents {
@@ -85,6 +90,7 @@ export const GatewayEvents = Object.freeze({
 	CHANNEL_CREATE: 'channelCreate',
 	CHANNEL_UPDATE: 'channelUpdate',
 	CHANNEL_DELETE: 'channelDelete',
+	GUILD_CREATE: 'guildCreate',
 });
 
 export interface MessageData {
@@ -125,6 +131,7 @@ export interface ChannelData {
 	name: string;
 	topic: string;
 	parent: string;
+	nsfw: boolean;
 }
 
 export interface PermissionOverwrites {

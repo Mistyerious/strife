@@ -162,18 +162,22 @@ export class WebsocketShard extends EventEmitter {
 						break;
 					}
 					case GatewayDispatchEvents.ChannelCreate: {
+						console.log(data.d);
 						const channel = new Channel(this.manager.client, data.d);
 						if (this.manager.client.options.cache.channels) {
 							this.manager.client.channels.set(channel.id, channel);
 							this.manager.client.guilds.get(channel.guildId).channels.set(channel.id, channel);
 						}
 						this.manager.client.emit(GatewayEvents[data.t], channel);
+						break;
 					}
 					case GatewayDispatchEvents.ChannelUpdate: {
 						this.manager.client.emit(GatewayEvents[data.t], new Channel(this.manager.client, data.d));
+						break;
 					}
 					case GatewayDispatchEvents.ChannelDelete: {
 						this.manager.client.emit(GatewayEvents[data.t], new Channel(this.manager.client, data.d));
+						break;
 					}
 					case GatewayDispatchEvents.GuildCreate: {
 						const guild = new Guild(this.manager.client, data.d);
@@ -186,6 +190,7 @@ export class WebsocketShard extends EventEmitter {
 							}
 						}
 						this.manager.client.emit(GatewayEvents[data.t], guild);
+						break;
 					}
 				}
 				this.manager.client.emit(data.t, data.d);

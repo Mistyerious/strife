@@ -2,6 +2,7 @@ import { ChannelData, MessageCreateData, PermissionOverwrites } from '../../../u
 import { BaseClient } from '../../BaseClient';
 import { ChannelType, RESTPostAPIGuildChannelJSONBody, RESTPostAPIGuildChannelResult } from 'discord-api-types/v9';
 import { Message } from './Message';
+import { Guild } from './Guild';
 
 export class Channel {
 	public client: BaseClient;
@@ -12,7 +13,9 @@ export class Channel {
 	public permissionOverwrites?: Array<PermissionOverwrites> = [];
 	public name: string;
 	public topic: string;
-	public parent: string;
+	public parentId: string;
+	public guild: Guild;
+	public nsfw: boolean;
 	constructor(client: BaseClient, data: ChannelData) {
 		this.client = client;
 		this.id = data.id;
@@ -22,7 +25,10 @@ export class Channel {
 		this.permissionOverwrites = data.permission_overwrites;
 		this.name = data.name;
 		this.topic = data.topic;
-		this.parent = data.parent;
+		this.parentId = data.parent;
+		this.nsfw = data.nsfw;
+		console.log(this.guildId);
+		this.guild = this.client.guilds.get(this.guildId);
 	}
 
 	public async send(data: MessageCreateData): Promise<Message> {

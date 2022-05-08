@@ -15,8 +15,8 @@ const client = new BaseClient(TOKEN, {
 		],
 	},
 	cache: {
-		guild: true,
-		channels: true,
+		guild: { limit: 100 },
+		channels: { limit: 50 },
 	},
 });
 
@@ -26,12 +26,13 @@ client.on('messageCreate', async (message: Message) => {
 	if (message.author.bot) return;
 	if (!message.content.startsWith('!')) return;
 
-	console.log(message.content);
 	switch (message.content) {
 		case '!hello': {
-			console.log(message.channel);
-			return console.log(await message.channel.send({ content: 'Hello there!' }));
+			console.log(client.guilds);
+			console.log(client.guilds.get('957867801119449109'));
+			return console.log(await message.channel.send({ content: 'hello' }));
 		}
 	}
 });
+client.on('channelUpdate', console.log);
 client.login();
