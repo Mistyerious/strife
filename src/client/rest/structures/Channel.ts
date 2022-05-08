@@ -1,6 +1,6 @@
 import { ChannelData, PermissionOverwrites } from '../../../util';
 import { BaseClient } from '../../BaseClient';
-import { ChannelType } from 'discord-api-types/v9';
+import { ChannelType, RESTPostAPIGuildChannelJSONBody, RESTPostAPIGuildChannelResult } from 'discord-api-types/v9';
 
 export class Channel {
 	public client: BaseClient;
@@ -22,5 +22,14 @@ export class Channel {
 		this.name = data.name;
 		this.topic = data.topic;
 		this.parent = data.parent;
+	}
+
+	public send() {}
+
+	public async create(
+		guildId: string,
+		data: RESTPostAPIGuildChannelJSONBody,
+	): Promise<RESTPostAPIGuildChannelResult> {
+		return await this.client.rest.post(`/guilds/${guildId}/channels`, data);
 	}
 }

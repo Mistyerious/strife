@@ -1,8 +1,15 @@
 import { BaseStore } from '../stores';
 import { WebsocketShard } from '../client';
-import { Message } from '../client/rest';
-import { BaseClient } from '../client/BaseClient';
-import { ChannelType, OverwriteType } from 'discord-api-types/v9';
+import {
+	ChannelType,
+	GuildDefaultMessageNotifications,
+	GuildExplicitContentFilter,
+	GuildMFALevel,
+	GuildVerificationLevel,
+	OverwriteType,
+	Snowflake,
+} from 'discord-api-types/v9';
+import { Channel } from '../client/rest';
 
 export interface IWebsocketShardData {
 	op: number;
@@ -16,16 +23,13 @@ export interface IBaseClientOptions {
 	presence?: IPresence;
 	shards?: BaseStore<string, WebsocketShard>;
 	cache?: CacheOptions;
-	cacheEnabled?: boolean;
 }
 
 interface CacheOptions {
-	guild: GuildCacheOptions;
-}
-
-interface GuildCacheOptions {
-	time: number;
-	limit: number;
+	guild?: boolean;
+	channels?: boolean;
+	users?: boolean;
+	members?: boolean;
 }
 
 export enum Intents {
@@ -66,15 +70,8 @@ export enum ActivityTypes {
 	Competing = 5,
 }
 
-export const VERSION = 'v9';
-
-export const Api = Object.freeze({
-	GET_CHANNEL_BY_ID: `https://discord.com/api/${VERSION}/channels/:id`,
-	MODIFY_CHANNEL_BY_ID: `https://discord.com/api/${VERSION}/channels/:id`,
-	DELETE_CHANNEL_BY_ID: `https://discord.com/api/${VERSION}/channels/:id`,
-	CREATE_GUILD_CHANNEL: `https://discord.com/api/${VERSION}/guilds/:guildId/channels`,
-	CREATE_MESSAGE: `https://discord.com/api/${VERSION}/channels/:channelId/messages`,
-});
+const VERSION = 'v9';
+const URL = `https://discord.com/api/${VERSION}`;
 
 export const GatewayEvents = Object.freeze({
 	MESSAGE_CREATE: 'messageCreate',
@@ -118,9 +115,9 @@ export interface MessageAuthor {
 }
 
 export interface ChannelData {
-	id: string;
+	id: Snowflake;
 	type: ChannelType;
-	guild_id: string;
+	guild_id?: Snowflake;
 	position?: number | null;
 	permission_overwrites?: Array<PermissionOverwrites>;
 	name: string;
@@ -133,4 +130,32 @@ export interface PermissionOverwrites {
 	type: OverwriteType;
 	allow: string;
 	deny: string;
+}
+
+export interface GuildData {
+	id: Snowflake;
+	name: string;
+	icon: string;
+	splash: string;
+	discovery_splash: string;
+	owner?: boolean;
+	owner_id: Snowflake;
+	permissions?: string;
+	afk_channel_id: Snowflake;
+	afk_timeout: number;
+	widget_enabled?: boolean;
+	widget_channel_id?: string;
+	verification_level: GuildVerificationLevel;
+	default_message_notifications: GuildDefaultMessageNotifications;
+	explicit_content_filter: GuildExplicitContentFilter;
+	roles: [];
+	emojis: [];
+	features: [];
+	mfa_level: GuildMFALevel;
+	application_id?: Snowflake;
+	system_channel_id?: Snowflake;
+	rules_channel_id?: Snowflake;
+	joined_at?: string;
+	unavailable: boolean;
+	channels: Array<Channel>;
 }

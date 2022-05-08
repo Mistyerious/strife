@@ -4,7 +4,7 @@ import { WebsocketShardManager } from './WebsocketShardManager';
 import WebSocket = require('ws');
 import { GatewayDispatchEvents, GatewayOpcodes } from 'discord-api-types/v9';
 import { RawData } from 'ws';
-import { Channel, Message } from '../rest';
+import { Channel, Guild, Message } from '../rest';
 
 export class WebsocketShard extends EventEmitter {
 	private ratelimit: { limit: number; remaining: number; time: number; timer: null | NodeJS.Timeout };
@@ -50,8 +50,8 @@ export class WebsocketShard extends EventEmitter {
 		}
 		this.connection = new WebSocket('wss://gateway.discord.gg?v=9&encoding=json');
 
-		this.connection.on('message', (message: RawData) => this._processMessage(message));
-		this.connection.on('error', console.log);
+		this.connection.on('message', this._processMessage.bind(this));
+		this.connection.on('error', this._onError.bind(this));
 	}
 
 	private debug(message: string) {
@@ -153,22 +153,39 @@ export class WebsocketShard extends EventEmitter {
 						this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
 						break;
 					}
-					// case GatewayDispatchEvents.MessageReactionAdd: {
-					// 	this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
-					// 	break;
-					// }
-					// case GatewayDispatchEvents.MessageReactionRemove: {
-					// 	this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
-					// 	break;
-					// }
+					case GatewayDispatchEvents.MessageReactionAdd: {
+						this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
+						break;
+					}
+					case GatewayDispatchEvents.MessageReactionRemove: {
+						this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
+						break;
+					}
 					case GatewayDispatchEvents.ChannelCreate: {
-						this.manager.client.emit(GatewayEvents[data.t], new Channel(this.manager.client, data.d));
+						const channel = new Channel(this.manager.client, data.d);
+						if (this.manager.client.options.cache.channels) {
+							this.manager.client.channels.set(channel.id, channel);
+							this.manager.client.guilds.get(channel.guildId).channels.set(channel.id, channel);
+						}
+						this.manager.client.emit(GatewayEvents[data.t], channel);
 					}
 					case GatewayDispatchEvents.ChannelUpdate: {
 						this.manager.client.emit(GatewayEvents[data.t], new Channel(this.manager.client, data.d));
 					}
 					case GatewayDispatchEvents.ChannelDelete: {
 						this.manager.client.emit(GatewayEvents[data.t], new Channel(this.manager.client, data.d));
+					}
+					case GatewayDispatchEvents.GuildCreate: {
+						const guild = new Guild(this.manager.client, data.d);
+						if (this.manager.client.options.cache.guild) {
+							this.manager.client.guilds.set(guild.id, guild);
+						}
+						if (this.manager.client.options.cache.channels) {
+							for (const channel of guild.channels.values()) {
+								this.manager.client.channels.set(channel.id, channel);
+							}
+						}
+						this.manager.client.emit(GatewayEvents[data.t], guild);
 					}
 				}
 				this.manager.client.emit(data.t, data.d);

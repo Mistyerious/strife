@@ -1,5 +1,6 @@
 import { BaseClient } from '../../BaseClient';
 import { MessageAuthor, MessageData } from '../../../util';
+import { Channel } from './Channel';
 
 export class Message {
 	public id: string;
@@ -36,5 +37,9 @@ export class Message {
 		this.channelId = data.channel_id;
 		this.mentionChannels = data.mention_channels;
 		this.mentionRoles = data.mention_roles;
+	}
+
+	channel(id: string): Channel {
+		return this.client.channels.get(id);
 	}
 }
