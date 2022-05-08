@@ -16,19 +16,18 @@ export class Channel {
 	public parentId: string;
 	public guild: Guild;
 	public nsfw: boolean;
-	constructor(client: BaseClient, data: ChannelData) {
+	constructor(client: BaseClient, data: ChannelData, guild?: Guild) {
 		this.client = client;
 		this.id = data.id;
 		this.type = data.type;
-		this.guildId = data.guild_id;
+		this.guildId = guild ? guild.id : data.guild_id;
 		this.position = data.position;
 		this.permissionOverwrites = data.permission_overwrites;
 		this.name = data.name;
 		this.topic = data.topic;
 		this.parentId = data.parent;
 		this.nsfw = data.nsfw;
-		console.log(this.guildId);
-		this.guild = this.client.guilds.get(this.guildId);
+		this.guild = guild ? guild : this.client.guilds.get(data.guild_id);
 	}
 
 	public async send(data: MessageCreateData): Promise<Message> {
