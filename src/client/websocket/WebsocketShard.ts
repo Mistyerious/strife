@@ -4,7 +4,7 @@ import { WebsocketShardManager } from './WebsocketShardManager';
 import WebSocket = require('ws');
 import { GatewayDispatchEvents, GatewayOpcodes } from 'discord-api-types/v9';
 import { RawData } from 'ws';
-import { Channel, Guild, Message } from '../rest';
+import { Channel, Guild, GuildChannel, Message } from '../rest';
 
 export class WebsocketShard extends EventEmitter {
 	private ratelimit: { limit: number; remaining: number; time: number; timer: null | NodeJS.Timeout };
@@ -162,11 +162,9 @@ export class WebsocketShard extends EventEmitter {
 						break;
 					}
 					case GatewayDispatchEvents.ChannelCreate: {
-						console.log(data.d);
 						const channel = new Channel(this.manager.client, data.d);
 						if (this.manager.client.options.cache.channels) {
 							this.manager.client.channels.set(channel.id, channel);
-							this.manager.client.guilds.get(channel.guildId).channels.set(channel.id, channel);
 						}
 						this.manager.client.emit(GatewayEvents[data.t], channel);
 						break;
@@ -179,6 +177,7 @@ export class WebsocketShard extends EventEmitter {
 						this.manager.client.emit(GatewayEvents[data.t], new Channel(this.manager.client, data.d));
 						break;
 					}
+
 					case GatewayDispatchEvents.GuildCreate: {
 						const guild = new Guild(this.manager.client, data.d);
 						if (this.manager.client.options.cache.guild) {
@@ -186,7 +185,8 @@ export class WebsocketShard extends EventEmitter {
 						}
 						if (this.manager.client.options.cache.channels) {
 							for (const channel of guild.channels.values()) {
-								this.manager.client.channels.set(channel.id, channel);
+								const c = new GuildChannel(this.manager.client, data.d, guild);
+								this.manager.client.channels.set(c.id, c);
 							}
 						}
 						this.manager.client.emit(GatewayEvents[data.t], guild);

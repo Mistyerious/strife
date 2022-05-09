@@ -1,11 +1,12 @@
 import { BaseClient } from '../../BaseClient';
-import { GuildData } from '../../../util';
+import { ChannelTypes, GuildChannels, GuildData } from '../../../util';
 import { BaseStore } from '../../../stores';
-import { Channel } from './Channel';
+import { GuildTextChannel } from './GuildTextChannel';
+import { GuildVoiceChannel } from './GuildVoiceChannel';
 
 export class Guild {
 	public client: BaseClient;
-	public channels = new BaseStore<string, Channel>();
+	public channels = new BaseStore<string, GuildChannels>();
 	public id: string;
 	constructor(client: BaseClient, data: GuildData) {
 		this.id = data.id;
@@ -13,8 +14,17 @@ export class Guild {
 
 		if (client.options.cache.channels) {
 			for (const rawChannel of data.channels.values()) {
-				const channel = new Channel(client, rawChannel, this);
-				this.channels.set(channel.id, channel);
+				switch (rawChannel.type) {
+					case ChannelTypes.GUILD_TEXT: {
+						const textChannel = new GuildTextChannel(this.client, rawChannel as GuildTextChannel);
+						this.channels.set(textChannel.id, textChannel);
+						break;
+					}
+					case ChannelTypes.GUILD_VOICE: {
+						const voiceChannel = new GuildVoiceChannel(this.client, rawChannel as GuildVoiceChannel);
+						this.channels.set(voiceChannel.id, voiceChannel);
+					}
+				}
 			}
 		}
 	}

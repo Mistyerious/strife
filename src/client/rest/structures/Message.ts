@@ -1,6 +1,7 @@
 import { BaseClient } from '../../BaseClient';
 import { MessageAuthor, MessageData } from '../../../util';
-import { Channel } from './Channel';
+import { GuildTextChannel } from './GuildTextChannel';
+import { Guild } from './Guild';
 
 export class Message {
 	public id: string;
@@ -20,7 +21,9 @@ export class Message {
 	public channelId: string;
 	public mentionRoles = [];
 	public mentionChannels = [];
-	public channel: Channel;
+	public channel: GuildTextChannel;
+	public guildId?: string;
+	public guild?: Guild;
 	constructor(client: BaseClient, data: MessageData) {
 		this.client = client;
 		this.id = data.id;
@@ -39,6 +42,8 @@ export class Message {
 		this.mentionChannels = data.mention_channels;
 		this.mentionRoles = data.mention_roles;
 		this.type = data.type;
-		this.channel = this.client.channels.get(this.channelId);
+		this.guildId = data.guild_id;
+		this.guild = this.client.guilds.get(this.guildId);
+		this.channel = this.guild.channels.get(this.channelId) as GuildTextChannel;
 	}
 }

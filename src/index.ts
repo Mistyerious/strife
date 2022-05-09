@@ -28,9 +28,7 @@ client.on('messageCreate', async (message: Message) => {
 
 	switch (message.content) {
 		case '!hello': {
-			console.log(client.guilds);
-			console.log(client.guilds.get('957867801119449109'));
-			return console.log(await message.channel.send({ content: 'hello' }));
+			console.log(client.channels);
 		}
 	}
 });

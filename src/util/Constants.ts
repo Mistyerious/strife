@@ -1,17 +1,6 @@
 import { BaseStore } from '../stores';
 import { WebsocketShard } from '../client';
-import {
-	APIMessageReferenceSend,
-	ChannelType,
-	EmbedType,
-	GuildDefaultMessageNotifications,
-	GuildExplicitContentFilter,
-	GuildMFALevel,
-	GuildVerificationLevel,
-	OverwriteType,
-	Snowflake,
-} from 'discord-api-types/v9';
-import { Channel } from '../client/rest';
+import { GuildTextChannel, GuildVoiceChannel } from '../client/rest';
 
 export interface IWebsocketShardData {
 	op: number;
@@ -110,6 +99,7 @@ export interface MessageData {
 	channel_id: string;
 	mention_roles: [];
 	mention_channels: [];
+	guild_id?: string;
 }
 
 export interface MessageAuthor {
@@ -124,15 +114,28 @@ export interface MessageAuthor {
 
 export interface ChannelData {
 	id: Snowflake;
-	type: ChannelType;
-	guild_id?: Snowflake;
-	position?: number | null;
-	permission_overwrites?: Array<PermissionOverwrites>;
-	name: string;
-	topic: string;
-	parent: string;
-	nsfw: boolean;
+	type: ChannelTypes | string;
 }
+
+export type GuildChannels = GuildTextChannel | GuildVoiceChannel;
+
+export interface GuildChannelData extends ChannelData {
+	guild_id?: Snowflake;
+}
+
+export interface GuildTextChannelData extends GuildChannelData {
+	name: string;
+	position: number;
+	permission_overwrites?: Array<PermissionOverwrites>;
+	parent_id?: Snowflake;
+	last_message_id?: Snowflake;
+	topic?: string;
+	nsfw?: boolean;
+	last_pin_timestamp?: string;
+	rate_limit_per_user?: number;
+}
+
+export interface GuildVoiceChannelData extends GuildChannelData {}
 
 export interface PermissionOverwrites {
 	id: string;
@@ -166,7 +169,52 @@ export interface GuildData {
 	rules_channel_id?: Snowflake;
 	joined_at?: string;
 	unavailable: boolean;
-	channels: Array<Channel>;
+	channels: Array<GuildChannels>;
+}
+
+export enum GuildDefaultMessageNotifications {
+	ALL_MESSAGES = 0,
+	ONLY_MENTIONS = 1,
+}
+
+export enum GuildMFALevel {
+	NONE = 0,
+	ELEVATED = 1,
+}
+
+export enum GuildExplicitContentFilter {
+	DISABLED = 0,
+	MEMBERS_WITHOUT_ROLES = 1,
+	ALL_MEMBERS = 2,
+}
+
+export enum GuildVerificationLevel {
+	NONe = 0,
+	LOW = 1,
+	MEDIUM = 2,
+	HIGH = 3,
+	VERY_HIGH = 4,
+}
+
+export enum OverwriteType {
+	ROLE = 0,
+	USER = 1,
+}
+
+export type Snowflake = string;
+
+export enum ChannelTypes {
+	GUILD_TEXT = 0,
+	DM = 1,
+	GUILD_VOICE = 2,
+	GROUP_DM = 3,
+	GUILD_CATEGORY = 4,
+	GUILD_NEWS = 5,
+	GUILD_NEWS_THREAD = 10,
+	GUILD_PUBLIC_THREAD = 11,
+	GUILD_PRIVATE_THREAD = 12,
+	GUILD_STAGE_VOICE = 13,
+	GUILD_DIRECTORY = 14,
 }
 
 export interface MessageCreateData {
