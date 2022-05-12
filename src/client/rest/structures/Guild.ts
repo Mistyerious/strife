@@ -16,13 +16,15 @@ export class Guild {
 			for (const rawChannel of data.channels.values()) {
 				switch (rawChannel.type) {
 					case ChannelTypes.GUILD_TEXT: {
-						const textChannel = new GuildTextChannel(this.client, rawChannel as GuildTextChannel);
+						const textChannel = new GuildTextChannel(this.client, rawChannel as GuildTextChannel, this);
 						this.channels.set(textChannel.id, textChannel);
 						break;
 					}
 					case ChannelTypes.GUILD_VOICE: {
-						const voiceChannel = new GuildVoiceChannel(this.client, rawChannel as GuildVoiceChannel);
+						const voiceChannel = new GuildVoiceChannel(this.client, rawChannel as GuildVoiceChannel, this);
 						this.channels.set(voiceChannel.id, voiceChannel);
+					}
+					case ChannelTypes.GUILD_CATEGORY: {
 					}
 				}
 			}

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
-import { IBaseClientOptions, Intents, IPresence } from '../util';
+import { GuildChannels, IBaseClientOptions, Intents, IPresence } from '../util';
 import { WebsocketShardManager } from './websocket';
-import { Channel, Guild, GuildChannel, RestManager } from './rest';
+import { Channel, Guild, RestManager } from './rest';
 import { BaseStore } from '../stores';
 export class BaseClient extends EventEmitter {
 	public ws: WebsocketShardManager;
@@ -10,7 +10,7 @@ export class BaseClient extends EventEmitter {
 	private readonly _presence: IPresence;
 	public options: IBaseClientOptions;
 	public rest: RestManager;
-	public channels: BaseStore<string, Channel | GuildChannel>;
+	public channels: BaseStore<string, Channel | GuildChannels>;
 	public guilds: BaseStore<string, Guild>;
 	constructor(token: string, options: IBaseClientOptions) {
 		super();
@@ -21,7 +21,7 @@ export class BaseClient extends EventEmitter {
 		this._intents = options.intents;
 		this._presence = options.presence;
 		this.rest = new RestManager(this);
-		this.channels = new BaseStore<string, GuildChannel>();
+		this.channels = new BaseStore<string, GuildChannels>();
 		this.guilds = new BaseStore<string, Guild>();
 	}
 

@@ -1,5 +1,5 @@
 import { BaseStore } from '../stores';
-import { WebsocketShard } from '../client';
+import { Message, WebsocketShard } from '../client';
 import { GuildTextChannel, GuildVoiceChannel } from '../client/rest';
 
 export interface IWebsocketShardData {
@@ -95,11 +95,37 @@ export interface MessageData {
 	edited_timestamp: null | string;
 	flags: number;
 	components: [];
-	type: number;
+	type: MessageTypes;
 	channel_id: string;
 	mention_roles: [];
 	mention_channels: [];
 	guild_id?: string;
+}
+
+export enum MessageTypes {
+	DEFAULT,
+	RECIPIENT_ADD,
+	RECIPIENT_REMOVE,
+	CALL,
+	CHANNEL_NAME_CHANGE,
+	CHANNEL_ICON_CHANGE,
+	CHANNEL_PINNED_MESSAGE,
+	GUILD_MEMBER_JOIN,
+	USER_PREMIUM_GUILD_SUBSCRIPTION,
+	USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_1,
+	USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_2,
+	USER_PREMIUM_GUILD_SUBSCRIPTION_TIER_3,
+	CHANNEL_FOLLOW_ADD,
+	GUILD_DISCOVERY_DISQUALIFIED = 14,
+	GUILD_DISCOVERY_REQUALIFIED,
+	GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING,
+	GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING,
+	THREAD_CREATE,
+	REPLY,
+	CHAT_INPUT_COMMAND,
+	THREAD_STARTER_MESSAGE,
+	GUILD_INVITE_REMINDER,
+	CONTEXT_MENU_COMMAND,
 }
 
 export interface MessageAuthor {
@@ -125,7 +151,7 @@ export interface GuildChannelData extends ChannelData {
 
 export interface GuildTextChannelData extends GuildChannelData {
 	name: string;
-	position: number;
+	position?: number;
 	permission_overwrites?: Array<PermissionOverwrites>;
 	parent_id?: Snowflake;
 	last_message_id?: Snowflake;
@@ -135,7 +161,29 @@ export interface GuildTextChannelData extends GuildChannelData {
 	rate_limit_per_user?: number;
 }
 
-export interface GuildVoiceChannelData extends GuildChannelData {}
+export interface GuildVoiceChannelData extends GuildChannelData {
+	name: string;
+	position?: number;
+	permission_overwrites?: Array<PermissionOverwrites>;
+	parent_id?: string;
+	bitrate?: number;
+	user_limit?: number;
+	rtc_region?: string;
+	video_quality_mode?: VideoQualityMode;
+}
+
+export enum VideoQualityMode {
+	AUTO = 1,
+	FULL = 2,
+}
+
+interface VoiceRegion {
+	id: Snowflake;
+	name: string;
+	optimal: boolean;
+	deprecated: boolean;
+	custom: boolean;
+}
 
 export interface PermissionOverwrites {
 	id: string;
@@ -282,3 +330,38 @@ interface EmbedImage {
 }
 
 interface EmbedThumbnail extends EmbedImage {}
+
+export interface MessageSendData {
+	content: string;
+	tts?: boolean;
+	embeds?: Array<Embed>;
+	allowed_mentions?: Array<AllowedMentions>;
+	message_reference?: MessageReferenceSend;
+	components?: [];
+	sticker_ids?: Array<Snowflake>;
+	files?: [];
+	attachments?: Array<MessageAttachment>;
+	flags?: MessageFlags;
+}
+
+export interface MessageAttachment {
+	id: Snowflake;
+	filename?: string;
+	description?: string;
+	content_type?: string;
+	size?: number;
+	url?: string;
+	proxy_url?: string;
+	height?: number;
+	width?: number;
+	ephemeral?: boolean;
+}
+
+export interface MessageEditOptions {
+	content?: string;
+	embeds?: Array<Embed>;
+	flags?: MessageFlags;
+	allowed_mentions?: Array<AllowedMentions>;
+	components?: [];
+	attachments?: Array<Message>;
+}

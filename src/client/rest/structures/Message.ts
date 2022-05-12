@@ -1,5 +1,5 @@
 import { BaseClient } from '../../BaseClient';
-import { MessageAuthor, MessageData } from '../../../util';
+import { MessageAuthor, MessageData, MessageEditOptions } from '../../../util';
 import { GuildTextChannel } from './GuildTextChannel';
 import { Guild } from './Guild';
 
