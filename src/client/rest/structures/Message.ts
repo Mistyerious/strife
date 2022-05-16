@@ -1,12 +1,12 @@
 import { BaseClient } from '../../BaseClient';
-import { MessageAuthor, MessageData, MessageEditOptions } from '../../../util';
+import { MessageAuthor, MessageData, MessageEditOptions, MessageFetchOptions, Snowflake } from '../../../util';
 import { GuildTextChannel } from './GuildTextChannel';
 import { Guild } from './Guild';
 
 export class Message {
 	public id: string;
 	public content: string;
-	public client: BaseClient;
+	public client?: BaseClient;
 	public author: MessageAuthor;
 	public embeds = [];
 	public mentions = [];
@@ -45,5 +45,39 @@ export class Message {
 		this.guildId = data.guild_id;
 		this.guild = this.client.guilds.get(this.guildId);
 		this.channel = this.guild.channels.get(this.channelId) as GuildTextChannel;
+	}
+
+	async edit(options: MessageEditOptions): Promise<this> {
+		return this._parse(this.client.rest.patch(`/channels/${this.channelId}/messages/${this.id}`, options));
+	}
+
+	async fetch(id: Snowflake, options: MessageFetchOptions = { cache: true, force: false }) {
+		if (!this.channel) throw new Error('CHANNEL_NOT_CACHED');
+		if (options.cache) {
+			let response = this._parse(await this.client.rest.get(`/channels/${this.channelId}/messages/${id}`));
+			this.channel.messages.set(id, response);
+		}
+		return options.force
+			? this._parse(await this.client.rest.get(`/channels/${this.channelId}/messages/${id}`))
+			: this.channel.messages.get(id);
+	}
+
+	private _parse(data: any): this {
+		this.id = data.id;
+		this.content = data.content;
+		this.embeds = data.embeds;
+		this.channelId = data.channelId;
+		this.channel = data.channel;
+		this.mentions = data.mentions;
+		this.mentionRoles = data.mentionRoles;
+		this.mentionEveryone = data.mentionEveryone;
+		this.tts = data.tts;
+		this.mentionChannels = data.mentionChannels;
+		this.components = data.components;
+		this.flags = data.flags;
+		this.editedTimestamp = data.editedTimestamp;
+		this.timestamp = data.timestamp;
+
+		return this;
 	}
 }

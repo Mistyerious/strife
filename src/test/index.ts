@@ -29,11 +29,10 @@ client.on('messageCreate', async (message: Message) => {
 		case '!changeName': {
 			message.channel.send({ content: 'Hello World!' }).then((msg) => {
 				setTimeout(() => {
-					console.log(typeof msg);
-					console.log('Done');
-					// msg.edit({ content: 'Fuck off' });
+					msg.edit({ content: 'Fuck off' });
 				}, 5000);
 			});
+			console.log(await message.fetch('975507065302818847'));
 		}
 	}
 });

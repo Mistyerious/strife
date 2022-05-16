@@ -365,3 +365,8 @@ export interface MessageEditOptions {
 	components?: [];
 	attachments?: Array<Message>;
 }
+
+export interface MessageFetchOptions {
+	cache?: boolean;
+	force?: boolean;
+}

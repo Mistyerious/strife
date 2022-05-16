@@ -33,4 +33,15 @@ export class RestManager {
 
 		return body.json();
 	}
+
+	public async get(path: string): Promise<any> {
+		const { body } = await request(`${DiscordApiUrl}${path}`, {
+			method: 'GET',
+			headers: {
+				Authorization: `Bot ${this.client.token}`,
+			},
+		});
+
+		return body.json();
+	}
 }
