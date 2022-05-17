@@ -1,16 +1,16 @@
 import { EventEmitter } from 'events';
-import { ChannelTypes, GatewayEvents, IPresence, IWebsocketShardData, Util } from '../../util';
+import { GatewayEvents, IPresence, IWebsocketShardData, Util } from '../../util';
 import { WebsocketShardManager } from './WebsocketShardManager';
 import { GatewayDispatchEvents, GatewayOpcodes } from 'discord-api-types/v9';
 import { RawData } from 'ws';
-import { Channel, Guild, GuildChannel, GuildTextChannel, GuildVoiceChannel, Message } from '../rest';
+import { Channel, Guild, GuildChannel, Message } from '../rest';
 import WebSocket = require('ws');
 
 export class WebsocketShard extends EventEmitter {
 	private ratelimit: { limit: number; remaining: number; time: number; timer: null | NodeJS.Timeout };
-	private connection: WebSocket;
+	private connection?: WebSocket;
 	private sessionId: string | null;
-	private sequence: number | null;
+	private sequence: number;
 	private manager: WebsocketShardManager;
 	private lastHeartbeatAck: number | null;
 	private lastHeartbeat: number | null;
@@ -33,7 +33,7 @@ export class WebsocketShard extends EventEmitter {
 		this.manager = manager;
 		this.shardId = shardId;
 		this.sessionId = null;
-		this.sequence = null;
+		this.sequence = 0;
 		this.lastHeartbeatAck = null;
 		this.lastHeartbeat = null;
 		this.readyAt = null;
@@ -65,19 +65,19 @@ export class WebsocketShard extends EventEmitter {
 		if (!Util.isValidRequest(data)) {
 			return Promise.reject(new Error('Invalid Request'));
 		}
-		if (!this.ratelimit.timer) {
-			this.ratelimit.timer = setTimeout(() => {
-				this.ratelimit.timer = null;
-			}, this.ratelimit.time);
-		}
-		let count = 0;
-		const until = Date.now() + 60000;
-		if (++count > this.ratelimit.limit && ![1, 2, 6].includes(data.op)) {
-			const error = new Error('Socket rate limit exceeded');
-			error['retry_after'] = until - Date.now();
-			error['remaining_tries'] = this.ratelimit.remaining - 1;
-			return Promise.reject(error);
-		}
+		// if (!this.ratelimit.timer) {
+		// 	this.ratelimit.timer = setTimeout(() => {
+		// 		this.ratelimit.timer = null;
+		// 	}, this.ratelimit.time);
+		// }
+		// let count = 0;
+		// const until = Date.now() + 60000;
+		// if (++count > this.ratelimit.limit && ![1, 2, 6].includes(data.op)) {
+		// 	const error = new Error('Socket rate limit exceeded');
+		// 	error['retry_after'] = until - Date.now();
+		// 	error['remaining_tries'] = this.ratelimit.remaining - 1;
+		// 	return Promise.reject(error);
+		// }
 		this.connection.send(JSON.stringify(data));
 		return Promise.resolve();
 	}
@@ -118,7 +118,7 @@ export class WebsocketShard extends EventEmitter {
 	private async _processMessage(message: RawData) {
 		const data: IWebsocketShardData = JSON.parse(message.toString());
 
-		if (data.s > this.sequence) {
+		if (data.s && data.s > this.sequence) {
 			this.sequence = data.s;
 		}
 		switch (data.op) {
@@ -138,6 +138,9 @@ export class WebsocketShard extends EventEmitter {
 						break;
 					}
 					case GatewayDispatchEvents.MessageCreate: {
+						if (this.manager.client.options.cache?.messages) {
+							this.manager.client.channels.get(data.d.channel_id)?.messages?.set(data.d.id, data.d);
+						}
 						this.manager.client.emit(GatewayEvents[data.t], new Message(this.manager.client, data.d));
 						break;
 					}
@@ -163,7 +166,7 @@ export class WebsocketShard extends EventEmitter {
 					}
 					case GatewayDispatchEvents.ChannelCreate: {
 						const channel = new Channel(this.manager.client, data.d);
-						if (this.manager.client.options.cache.channels) {
+						if (this.manager.client.options.cache?.channels) {
 							this.manager.client.channels.set(channel.id, channel);
 						}
 						this.manager.client.emit(GatewayEvents[data.t], channel);
@@ -180,11 +183,12 @@ export class WebsocketShard extends EventEmitter {
 
 					case GatewayDispatchEvents.GuildCreate: {
 						const guild = new Guild(this.manager.client, data.d);
-						if (this.manager.client.options.cache.guild) {
+						if (this.manager.client.options.cache?.guild) {
 							this.manager.client.guilds.set(guild.id, guild);
 						}
-						if (this.manager.client.options.cache.channels) {
+						if (this.manager.client.options.cache?.channels) {
 							for (const c of guild.channels.values()) {
+								// @ts-ignore
 								const channel = new GuildChannel(this.manager.client, c, guild);
 								this.manager.client.channels.set(channel.id, channel);
 							}
@@ -193,7 +197,7 @@ export class WebsocketShard extends EventEmitter {
 						break;
 					}
 				}
-				this.manager.client.emit(data.t, data.d);
+				this.manager.client.emit(data.t!, data.d);
 				break;
 			}
 			case GatewayOpcodes.Hello: {
@@ -219,7 +223,7 @@ export class WebsocketShard extends EventEmitter {
 			}
 			case GatewayOpcodes.Resume: {
 				this.debug('Discord asked us to reconnect');
-				await this.connection.close();
+				await this.connection?.close();
 				this._identify();
 				break;
 			}
@@ -234,7 +238,7 @@ export class WebsocketShard extends EventEmitter {
 					this._resumeConnection();
 				} else {
 					this.sessionId = null;
-					this.sequence = null;
+					this.sequence = 0;
 					setTimeout(() => this._identifyNew(), Math.floor(Math.random() * 4000) + 1000);
 				}
 				break;

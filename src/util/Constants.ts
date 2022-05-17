@@ -1,5 +1,4 @@
-import { BaseStore } from '../stores';
-import { Message, WebsocketShard } from '../client';
+import { Message } from '../client';
 import { GuildTextChannel, GuildVoiceChannel } from '../client/rest';
 
 export interface IWebsocketShardData {
@@ -11,8 +10,8 @@ export interface IWebsocketShardData {
 
 export interface IBaseClientOptions {
 	intents: Array<Intents>;
-	presence?: IPresence;
-	shards?: BaseStore<string, WebsocketShard>;
+	presence: IPresence;
+	shards?: Array<number> | number;
 	cache?: CacheOptions;
 }
 
@@ -21,6 +20,7 @@ interface CacheOptions {
 	channels?: CacheOptionInternal;
 	users?: CacheOptionInternal;
 	members?: CacheOptionInternal;
+	messages?: CacheOptionInternal;
 }
 
 interface CacheOptionInternal {
@@ -48,8 +48,10 @@ export enum Intents {
 }
 
 export interface IPresence {
-	status: 'idle' | 'dnd' | 'online' | 'offline' | 'invisible';
+	status: 'idle' | 'dnd' | 'online' | 'offline' | 'invisible' | string;
 	activities: Array<IActivites>;
+	afk: boolean;
+	since?: number;
 }
 
 export interface IActivites {
@@ -92,7 +94,7 @@ export interface MessageData {
 	mention_everyone: boolean;
 	tts: boolean;
 	timestamp: string;
-	edited_timestamp: null | string;
+	edited_timestamp: string;
 	flags: number;
 	components: [];
 	type: MessageTypes;
@@ -146,30 +148,30 @@ export interface ChannelData {
 export type GuildChannels = GuildTextChannel | GuildVoiceChannel;
 
 export interface GuildChannelData extends ChannelData {
-	guild_id?: Snowflake;
+	guild_id: Snowflake;
 }
 
 export interface GuildTextChannelData extends GuildChannelData {
 	name: string;
-	position?: number;
+	position: number;
 	permission_overwrites?: Array<PermissionOverwrites>;
-	parent_id?: Snowflake;
-	last_message_id?: Snowflake;
-	topic?: string;
-	nsfw?: boolean;
-	last_pin_timestamp?: string;
-	rate_limit_per_user?: number;
+	parent_id: Snowflake | null;
+	last_message_id: Snowflake | null;
+	topic: string | null;
+	nsfw: boolean;
+	last_pin_timestamp: string | null;
+	rate_limit_per_user: number | null;
 }
 
 export interface GuildVoiceChannelData extends GuildChannelData {
 	name: string;
-	position?: number;
-	permission_overwrites?: Array<PermissionOverwrites>;
-	parent_id?: string;
-	bitrate?: number;
-	user_limit?: number;
-	rtc_region?: string;
-	video_quality_mode?: VideoQualityMode;
+	position: number;
+	permission_overwrites: Array<PermissionOverwrites>;
+	parent_id: string;
+	bitrate: number;
+	user_limit: number;
+	rtc_region: string;
+	video_quality_mode: VideoQualityMode;
 }
 
 export enum VideoQualityMode {
@@ -217,7 +219,7 @@ export interface GuildData {
 	rules_channel_id?: Snowflake;
 	joined_at?: string;
 	unavailable: boolean;
-	channels: Array<GuildChannels>;
+	channels: Array<GuildChannelData>;
 }
 
 export enum GuildDefaultMessageNotifications {
@@ -366,7 +368,7 @@ export interface MessageEditOptions {
 	attachments?: Array<Message>;
 }
 
-export interface MessageFetchOptions {
+export interface FetchOptions {
 	cache?: boolean;
 	force?: boolean;
 }

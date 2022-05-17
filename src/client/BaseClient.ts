@@ -10,7 +10,7 @@ export class BaseClient extends EventEmitter {
 	private readonly _presence: IPresence;
 	public options: IBaseClientOptions;
 	public rest: RestManager;
-	public channels: BaseStore<string, Channel | GuildChannels>;
+	public channels: BaseStore<string, GuildChannels>;
 	public guilds: BaseStore<string, Guild>;
 	constructor(token: string, options: IBaseClientOptions) {
 		super();

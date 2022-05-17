@@ -34,6 +34,18 @@ export class RestManager {
 		return body.json();
 	}
 
+	public async delete(path: string, data?: any): Promise<any> {
+		const { body } = await request(`${DiscordApiUrl}${path}`, {
+			method: 'DELETE',
+			headers: {
+				Authorization: `Bot ${this.client.token}`,
+			},
+			body: JSON.stringify(data),
+		});
+
+		return body.json();
+	}
+
 	public async get(path: string): Promise<any> {
 		const { body } = await request(`${DiscordApiUrl}${path}`, {
 			method: 'GET',

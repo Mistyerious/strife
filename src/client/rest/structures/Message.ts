@@ -1,12 +1,12 @@
 import { BaseClient } from '../../BaseClient';
-import { MessageAuthor, MessageData, MessageEditOptions, MessageFetchOptions, Snowflake } from '../../../util';
+import { FetchOptions, MessageAuthor, MessageData, MessageEditOptions, Snowflake } from '../../../util';
 import { GuildTextChannel } from './GuildTextChannel';
 import { Guild } from './Guild';
 
 export class Message {
 	public id: string;
 	public content: string;
-	public client?: BaseClient;
+	public client: BaseClient;
 	public author: MessageAuthor;
 	public embeds = [];
 	public mentions = [];
@@ -23,7 +23,7 @@ export class Message {
 	public mentionChannels = [];
 	public channel: GuildTextChannel;
 	public guildId?: string;
-	public guild?: Guild;
+	public guild?: Guild | null;
 	constructor(client: BaseClient, data: MessageData) {
 		this.client = client;
 		this.id = data.id;
@@ -43,23 +43,33 @@ export class Message {
 		this.mentionRoles = data.mention_roles;
 		this.type = data.type;
 		this.guildId = data.guild_id;
-		this.guild = this.client.guilds.get(this.guildId);
-		this.channel = this.guild.channels.get(this.channelId) as GuildTextChannel;
+		this.guild = this.guildId ? this.client.guilds.get(this.guildId) : null;
+		this.channel = this.guild?.channels.get(this.channelId) as GuildTextChannel;
 	}
 
 	async edit(options: MessageEditOptions): Promise<this> {
 		return this._parse(this.client.rest.patch(`/channels/${this.channelId}/messages/${this.id}`, options));
 	}
 
-	async fetch(id: Snowflake, options: MessageFetchOptions = { cache: true, force: false }) {
+	async fetch(id: Snowflake, options: FetchOptions = { cache: true, force: false }) {
 		if (!this.channel) throw new Error('CHANNEL_NOT_CACHED');
 		if (options.cache) {
-			let response = this._parse(await this.client.rest.get(`/channels/${this.channelId}/messages/${id}`));
-			this.channel.messages.set(id, response);
+			this.channel.messages?.set(
+				id,
+				new Message(this.client, {
+					channel_id: this.channelId,
+					guild_id: this.guildId,
+					...(await this.client.rest.get(`/channels/${this.channelId}/messages/${id}`)),
+				}),
+			);
 		}
 		return options.force
-			? this._parse(await this.client.rest.get(`/channels/${this.channelId}/messages/${id}`))
-			: this.channel.messages.get(id);
+			? new Message(this.client, {
+					channel_id: this.channelId,
+					guild_id: this.guildId,
+					...(await this.client.rest.get(`/channels/${this.channelId}/messages/${id}`)),
+			  })
+			: this.channel.messages?.get(id);
 	}
 
 	private _parse(data: any): this {

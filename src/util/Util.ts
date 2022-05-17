@@ -1,8 +1,8 @@
 import { isArray } from 'util';
-import { Intents, IWebsocketShardData } from './Constants';
+import { Intents, IPresence, IWebsocketShardData } from './Constants';
 
 export class Util {
-	static isValidProperties(obj) {
+	static isValidProperties(obj: any) {
 		return (
 			obj && typeof obj === 'object' && ['$os', '$browser', '$device'].every((x) => typeof obj[x] === 'string')
 		);
@@ -12,29 +12,17 @@ export class Util {
 		return data && data.d && data.op;
 	}
 
-	static isValidPresence(obj) {
-		if (
-			!obj ||
-			typeof obj !== 'object' ||
-			typeof obj.since === 'undefined' ||
-			typeof obj.afk !== 'boolean' ||
-			typeof obj.status !== 'string'
-		) {
-			return false;
-		}
-		if (!['online', 'dnd', 'idle', 'offline'].includes((obj.status = obj.status.toLowerCase()))) {
-			return false;
-		}
-		if (!isArray(obj.activities)) {
+	static isValidPresence(obj: IPresence) {
+		if (!obj || typeof obj !== 'object' || typeof obj.since === 'undefined') {
 			return false;
 		}
 		if (
-			obj.activities.length &&
-			!obj.activities.every((x) => typeof x.name === 'string' && [0, 1, 2, 3, 4, 5].includes(x.type))
+			!['online', 'dnd', 'idle', 'offline'].includes((obj.status = obj.status.toLowerCase())) ||
+			!isArray(obj.activities)
 		) {
 			return false;
 		}
-		return true;
+		return !(obj.activities.length && !obj.activities.every((x) => [0, 1, 2, 3, 4, 5].includes(x.type)));
 	}
 
 	static parseIntents(intents: Array<Intents>) {

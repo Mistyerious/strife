@@ -6,6 +6,7 @@ const client = new BaseClient(TOKEN, {
 	intents: [Intents.GUILD_MESSAGES, Intents.GUILDS],
 	presence: {
 		status: 'dnd',
+		afk: false,
 		activities: [
 			{
 				type: ActivityTypes.Watching,
@@ -27,12 +28,7 @@ client.on('messageCreate', async (message: Message) => {
 
 	switch (message.content) {
 		case '!changeName': {
-			message.channel.send({ content: 'Hello World!' }).then((msg) => {
-				setTimeout(() => {
-					msg.edit({ content: 'Fuck off' });
-				}, 5000);
-			});
-			console.log(await message.fetch('975507065302818847'));
+			console.log(message.channel);
 		}
 	}
 });
